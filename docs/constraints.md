@@ -15,6 +15,7 @@ Under-temp fault: T < -10 °C
 ## BMS States
 | Condition                             | Rover Operational Mode                | BMS State     |
 |---------------------------------------|---------------------------------------|---------------|
+| Power on                              | Safety Checks                         | INIT          |
 | Voltage, current or temperature fault | Any                                   | FAULT         |
 | External power source detected        | Any                                   | CHARGING      |
 | Active power demand detected          | Movement / Processing / Communication | DISCHARGING   |
