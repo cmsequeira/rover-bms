@@ -8,6 +8,7 @@
 
 // Load request levels
 typedef enum {
+    LOAD_NONE,                     // No load
     LOAD_MINIMAL,                  // Sleep mode
     LOAD_LOW,                      // Idle mode
     LOAD_MEDIUM,                   // Regular operational mode

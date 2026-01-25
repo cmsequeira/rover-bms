@@ -56,5 +56,8 @@ void bms_update(const bms_inputs_t *inputs, bms_outputs_t *outputs)
     }
 
     // 6. Idle
+    if (inputs->load_request == LOAD_NONE) {
     outputs->state = BMS_IDLE;
+        return;
+    }
 }

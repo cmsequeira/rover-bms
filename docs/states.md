@@ -1,16 +1,16 @@
 # BMS States
 
 ## Voltage Contraints:
-Over-voltage fault: V > 30 V
-Under-voltage fault: V < 25 V
+Over-voltage fault: V > 30 V  
+Under-voltage fault: V < 25 V  
 
 ## Current Constraints:
-Charge current limit: I > 8 A
-Discharge current limit: I > 15 A
+Charge current limit: I > 8 A  
+Discharge current limit: I > 15 A  
 
 ## Temperature Constraints:
-Over-temp fault: T > 40 °C
-Under-temp fault: T < -10 °C
+Over-temp fault: T > 40 °C  
+Under-temp fault: T < -10 °C  
 
 ## BMS States
 | Condition                             | Rover Operational Mode                | BMS State     |
