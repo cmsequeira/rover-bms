@@ -24,7 +24,7 @@ typedef struct {
     load_request_t load_request;   // Requested load level
 } bms_inputs_t;
 
-// NEED TO FIX LATER
+// NEED TO FIX LATER - when to use an enum vs uint32 when there can be multiple faults at once?
 // Fault codes
 typedef enum {
     FAULT_NONE,                    // No fault
