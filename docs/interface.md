@@ -1,14 +1,19 @@
-## BMS Interface
+# BMS Interface
 
-Inputs:
-- (Float) Battery voltage (V)
-- (Float) Battery current (A)
-- (Float) Battery Temperature (°C)
-- (Bool) Charger connected
-- (Enum) Load request level
+## Inputs:
+- Battery voltage (V)
+- Battery current (A)
+- Battery Temperature (°C)
+- Charger Connected
+- Load Level Request
+- Wake Request
 
-Outputs:
+## Outputs:
 - BMS State
-- (Bool) Charge enable / disable
-- (Bool) Discharge enable / (Float) limit
-- (Bool) Fault flags
+- Charge Enable
+- Discharge Enable
+- Fault Active
+- Fault Flags
+
+## Input Output Diagram
+![alt text](input_output.png)
