@@ -5,7 +5,7 @@
 
 typedef enum {
     BMS_INIT,         // Initializing
-    BMS_IDLE,         // Rover is on but not active
+    BMS_STANDBY,      // Rover is on but not active
     BMS_CHARGING,     // Rover being charged
     BMS_DISCHARGING,  // Rover consuming power
     BMS_FAULT,        // Safety limit exceeded

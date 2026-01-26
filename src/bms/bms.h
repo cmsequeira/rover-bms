@@ -4,13 +4,14 @@
 #define BMS_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include "bms_state.h"             // Includes the BMS states
 
 // Load request levels
 typedef enum {
     LOAD_NONE,                     // No load
     LOAD_MINIMAL,                  // Sleep mode
-    LOAD_LOW,                      // Idle mode
+    LOAD_LOW,                      // Standby mode
     LOAD_MEDIUM,                   // Regular operational mode
     LOAD_HIGH                      // High power mode
 } load_request_t;
@@ -25,15 +26,15 @@ typedef struct {
     load_request_t load_request;   // Requested load level
 } bms_inputs_t;
 
-// NEED TO FIX LATER - when to use an enum vs uint32 when there can be multiple faults at once?
 // Fault codes
-typedef enum {
-    FAULT_NONE,                    // No fault
-    FAULT_OVERVOLTAGE,             // Voltage too high
-    FAULT_UNDERVOLTAGE,            // Voltage too low
-    FAULT_OVERCURRENT,             // Current too high
-    FAULT_OVERTEMPERATURE          // Temperature too high
-} bms_fault_t;
+typedef uint32_t bms_fault_t;
+
+#define FAULT_NONE             0u          // No fault
+#define FAULT_OVERVOLTAGE      (1u << 0)   // Voltage too high
+#define FAULT_UNDERVOLTAGE     (1u << 1)   // Voltage too low
+#define FAULT_OVERCURRENT      (1u << 2)   // Current too high
+#define FAULT_OVERTEMPERATURE  (1u << 3)   // Temperature too high
+#define FAULT_UNDERTEMPERATURE (1u << 4)   // Temperature too low
 
 // OUTPUTS from the BMS
 typedef struct {

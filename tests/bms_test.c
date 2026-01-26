@@ -8,7 +8,8 @@
 
 void test_fault_voltage_high() {
     bms_inputs_t inputs = {0};
-    bms_outputs_t outputs = {0};
+    bms_outputs_t outputs;
+    bms_init(&outputs);
 
     inputs.voltage = MAX_VOLTAGE + 1; // Set voltage above max limit
     inputs.current = 0;
@@ -20,9 +21,32 @@ void test_fault_voltage_high() {
     ASSERT_EQUAL(outputs.state, BMS_FAULT, "Overvoltage triggers FAULT");
 }
 
+void test_multiple_faults() {
+    bms_inputs_t inputs = {0};
+    bms_outputs_t outputs;
+    bms_init(&outputs);
+
+    inputs.voltage = MAX_VOLTAGE + 5;  // Overvoltage
+    inputs.current = MAX_CHARGE_CURRENT + 1; // Overcurrent
+    inputs.temperature = MAX_TEMPERATURE + 1; // Overtemperature
+    inputs.charger_connected = true;
+    inputs.load_request = LOAD_HIGH;
+
+    bms_update(&inputs, &outputs);
+    ASSERT_EQUAL(outputs.state, BMS_FAULT, "Multiple faults trigger FAULT");
+    if ((outputs.fault_flag & FAULT_OVERVOLTAGE) && 
+        (outputs.fault_flag & FAULT_OVERCURRENT) &&
+        (outputs.fault_flag & FAULT_OVERTEMPERATURE)) {
+        printf("PASS: Multiple faults detected correctly\n");
+    } else {
+        printf("FAIL: Multiple faults not detected\n");
+    }
+}
+
 void test_charging_state() {
     bms_inputs_t inputs = {0};
-    bms_outputs_t outputs = {0};
+    bms_outputs_t outputs;
+    bms_init(&outputs);
 
     inputs.voltage = 25;
     inputs.current = 0;
@@ -36,10 +60,11 @@ void test_charging_state() {
 
 void test_discharge_state() {
     bms_inputs_t inputs = {0};
-    bms_outputs_t outputs = {0};
+    bms_outputs_t outputs;
+    bms_init(&outputs);
 
     inputs.voltage = 25;
-    inputs.current = 2;
+    inputs.current = MAX_DISCHARGE_CURRENT;
     inputs.temperature = 25;
     inputs.charger_connected = false;
     inputs.load_request = LOAD_MEDIUM;
@@ -50,7 +75,8 @@ void test_discharge_state() {
 
 void test_sleep_state() {
     bms_inputs_t inputs = {0};
-    bms_outputs_t outputs = {0};
+    bms_outputs_t outputs;
+    bms_init(&outputs);
 
     inputs.voltage = 25;
     inputs.current = 0.1;
@@ -62,9 +88,33 @@ void test_sleep_state() {
     ASSERT_EQUAL(outputs.state, BMS_SLEEP, "Minimal load triggers SLEEP");
 }
 
-void test_idle_state() {
+void test_wake_from_sleep() {
     bms_inputs_t inputs = {0};
-    bms_outputs_t outputs = {0};
+    bms_outputs_t outputs;
+    bms_init(&outputs);
+
+    // Force sleep
+    inputs.voltage = 25;
+    inputs.current = 0;
+    inputs.temperature = 25;
+    inputs.charger_connected = false;
+    inputs.load_request = LOAD_MINIMAL;
+    inputs.wake_request = false;
+
+    bms_update(&inputs, &outputs);
+    ASSERT_EQUAL(outputs.state, BMS_SLEEP, "Minimal load triggers SLEEP");
+
+    // Wake request
+    inputs.wake_request = true;
+    bms_update(&inputs, &outputs);
+    ASSERT_EQUAL(outputs.state, BMS_STANDBY, "Wake request exits SLEEP to STANDBY");
+}
+
+
+void test_standby_state() {
+    bms_inputs_t inputs = {0};
+    bms_outputs_t outputs;
+    bms_init(&outputs);
 
     inputs.voltage = 25;
     inputs.current = 0;
@@ -73,15 +123,16 @@ void test_idle_state() {
     inputs.load_request = LOAD_NONE;
 
     bms_update(&inputs, &outputs);
-    ASSERT_EQUAL(outputs.state, BMS_IDLE, "No load triggers IDLE");
+    ASSERT_EQUAL(outputs.state, BMS_STANDBY, "No load triggers STANDBY");
 
 }
 
 int main() {
     test_fault_voltage_high();
+    test_multiple_faults();
     test_charging_state();
     test_discharge_state();
     test_sleep_state();
-    test_idle_state();
+    test_standby_state();
     return 0;
 }
