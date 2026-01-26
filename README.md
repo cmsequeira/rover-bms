@@ -36,3 +36,15 @@ This project is relevant to automotive and aerospace applications, where autonom
 Bazel: https://bazel.build/
 FreeRTOS: https://www.freertos.org/
 MATLAB Simulink: https://www.mathworks.com/products/simulink.html
+
+# How to
+
+## Running BMS Test
+Within the repository, run the following commands:
+
+gcc -I./src/bms -o bms_test tests/bms_test.c src/bms/bms.c
+
+./bms_test
+
+## Screenshot of correct results
+![alt text](images/BMS_State_Test.png)

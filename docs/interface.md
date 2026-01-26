@@ -16,4 +16,4 @@
 - Fault Flags
 
 ## Input Output Diagram
-![alt text](input_output.png)
+![alt text](images/input_output.png)

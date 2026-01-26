@@ -23,4 +23,4 @@ Under-temp fault: T < -10 °C
 | Low SOC or extended inactivity        | Hibernation                           | SLEEP         |
 
 ## BMS State Flowchart
-![alt text](BMS_state_flowchart.png)
+![alt text](images/BMS_state_flowchart.png)
