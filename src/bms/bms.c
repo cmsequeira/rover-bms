@@ -1,6 +1,10 @@
+// Implement the State Machine
+
 #include "bms.h"
 #include "bms_state.h"
 #include "bms_limits.h"
+
+#define sleep_delay_ms 30000
 
 void bms_init(bms_outputs_t *outputs) 
 {
@@ -8,16 +12,17 @@ void bms_init(bms_outputs_t *outputs)
     outputs->charge_enabled = false;
     outputs->discharge_enabled = false;
     outputs->fault_active = false;
-    outputs->fault_flag = FAULT_NONE;
+    outputs->fault_flags = FAULT_NONE;
 }
 
 void bms_update(const bms_inputs_t *inputs, bms_outputs_t *outputs) 
 {
+    static uint32_t idle_time_ms = 0;
+    
     // Default safe outputs
     outputs->charge_enabled = false;
     outputs->discharge_enabled = false;
     outputs->fault_active = false;
-    outputs->fault_flag = FAULT_NONE;
 
     // 1. Run INIT
     if (outputs->state == BMS_INIT) {
@@ -26,34 +31,36 @@ void bms_update(const bms_inputs_t *inputs, bms_outputs_t *outputs)
     }
 
     // 2. Check for faults
+    bms_fault_t detected_fault = FAULT_NONE;
+    
     bool overcharge_current = inputs->charger_connected && (inputs->current > MAX_CHARGE_CURRENT);
     bool overdischarge_current = (!inputs->charger_connected) && (inputs->current > MAX_DISCHARGE_CURRENT);
 
     // Voltage Faults
     if (inputs->voltage > MAX_VOLTAGE) {
-        outputs->fault_flag |= FAULT_OVERVOLTAGE;
+        outputs->fault_flags |= FAULT_OVERVOLTAGE;
     }
 
     if (inputs->voltage < MIN_VOLTAGE) {
-        outputs->fault_flag |= FAULT_UNDERVOLTAGE;
+        outputs->fault_flags |= FAULT_UNDERVOLTAGE;
     }
 
     // Current Faults
     if (overcharge_current || overdischarge_current) {
-        outputs->fault_flag |= FAULT_OVERCURRENT;
+        outputs->fault_flags |= FAULT_OVERCURRENT;
     }
 
     // Temperature Faults
     if (inputs->temperature > MAX_TEMPERATURE) {
-        outputs->fault_flag |= FAULT_OVERTEMPERATURE;
+        outputs->fault_flags |= FAULT_OVERTEMPERATURE;
     }
 
     if (inputs->temperature < MIN_TEMPERATURE) {
-        outputs->fault_flag |= FAULT_UNDERTEMPERATURE;
+        outputs->fault_flags |= FAULT_UNDERTEMPERATURE;
     }
 
     // Check if any faults were detected
-    if (outputs->fault_flag != FAULT_NONE) {
+    if (outputs->fault_flags != FAULT_NONE) {
         outputs->fault_active = true;
         outputs->state = BMS_FAULT;
         return;

@@ -5,7 +5,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bms_state.h"             // Includes the BMS states
+#include "bms_state.h"  // Includes the BMS states
 
 // Load request levels
 typedef enum {
@@ -23,6 +23,8 @@ typedef struct {
     float temperature;             // degrees Celsius
     bool charger_connected;        // True if external power source is available
     bool wake_request;             // Request to wake from sleep
+    bool fault_reset;              // Latch for system recovery
+    uint32_t delta_time_ms;        // Time since last update
     load_request_t load_request;   // Requested load level
 } bms_inputs_t;
 
@@ -42,7 +44,7 @@ typedef struct {
     bool charge_enabled;           // Allow charging
     bool discharge_enabled;        // Allow discharging
     bool fault_active;             // True if in fault condition
-    bms_fault_t fault_flag;        // Specific fault code
+    bms_fault_t fault_flags;       // Fault bitmask
 } bms_outputs_t;
 
 // Function to update BMS state

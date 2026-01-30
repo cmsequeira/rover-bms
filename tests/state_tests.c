@@ -39,13 +39,6 @@ void test_multiple_faults() {
 
     run_bms(&inputs, &outputs);
     ASSERT_EQUAL(outputs.state, BMS_FAULT, "Multiple faults trigger FAULT");
-    // if ((outputs.fault_flag & FAULT_OVERVOLTAGE) && 
-        // (outputs.fault_flag & FAULT_OVERCURRENT) &&
-        // (outputs.fault_flag & FAULT_OVERTEMPERATURE)) {
-        // printf("PASS: Multiple faults detected correctly\n");
-    // } else {
-        // printf("FAIL: Multiple faults not detected\n");
-    //}
 }
 
 void test_charging_state() {
