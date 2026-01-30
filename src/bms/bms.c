@@ -1,100 +1,145 @@
 // Implement the State Machine
 
-#include "bms.h"
-#include "bms_state.h"
-#include "bms_limits.h"
+#include <errno.h>
 
-#define sleep_delay_ms 30000
+#include "bms.h" // BMS interface
+#include "bms_state.h" // BMS states
+#include "bms_define.h" // BMS constants
 
 void bms_init(bms_outputs_t *outputs) 
 {
-    outputs->state = BMS_INIT;
-    outputs->charge_enabled = false;
-    outputs->discharge_enabled = false;
-    outputs->fault_active = false;
-    outputs->fault_flags = FAULT_NONE;
+    if (outputs != NULL) 
+    {
+        outputs->state = BMS_INIT;
+        outputs->charge_enabled = false;
+        outputs->discharge_enabled = false;
+        outputs->fault_active = false;
+        outputs->fault_flags = FAULT_NONE;
+        return true;
+    }
+    return false;
 }
 
-void bms_update(const bms_inputs_t *inputs, bms_outputs_t *outputs) 
+void bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs) 
 {
     static uint32_t idle_time_ms = 0;
-    
-    // Default safe outputs
-    outputs->charge_enabled = false;
-    outputs->discharge_enabled = false;
-    outputs->fault_active = false;
 
-    // 1. Run INIT
-    if (outputs->state == BMS_INIT) {
-        outputs->state = BMS_STANDBY;
-        return;
-    }
-
-    // 2. Check for faults
+    // ----- Fault Detection -----
     bms_fault_t detected_fault = FAULT_NONE;
     
-    bool overcharge_current = inputs->charger_connected && (inputs->current > MAX_CHARGE_CURRENT);
-    bool overdischarge_current = (!inputs->charger_connected) && (inputs->current > MAX_DISCHARGE_CURRENT);
-
     // Voltage Faults
     if (inputs->voltage > MAX_VOLTAGE) {
-        outputs->fault_flags |= FAULT_OVERVOLTAGE;
+        detected_fault |= FAULT_OVERVOLTAGE;
     }
 
     if (inputs->voltage < MIN_VOLTAGE) {
-        outputs->fault_flags |= FAULT_UNDERVOLTAGE;
+        detected_fault |= FAULT_UNDERVOLTAGE;
     }
 
     // Current Faults
-    if (overcharge_current || overdischarge_current) {
-        outputs->fault_flags |= FAULT_OVERCURRENT;
+    if (inputs->charger_connected && (inputs->current > MAX_CHARGE_CURRENT) || 
+        (!inputs->charger_connected && (inputs->current > MAX_DISCHARGE_CURRENT))) {
+        detected_fault |= FAULT_OVERCURRENT;
     }
 
     // Temperature Faults
     if (inputs->temperature > MAX_TEMPERATURE) {
-        outputs->fault_flags |= FAULT_OVERTEMPERATURE;
+        detected_fault |= FAULT_OVERTEMPERATURE;
     }
 
     if (inputs->temperature < MIN_TEMPERATURE) {
-        outputs->fault_flags |= FAULT_UNDERTEMPERATURE;
+        detected_fault |= FAULT_UNDERTEMPERATURE;
     }
 
     // Check if any faults were detected
-    if (outputs->fault_flags != FAULT_NONE) {
+    if (detected_fault != FAULT_NONE) {
+        outputs->fault_flags = detected_fault;
         outputs->fault_active = true;
         outputs->state = BMS_FAULT;
         return;
     }
 
-    // 3. Charging
-    if (inputs->charger_connected) {
-        outputs->state = BMS_CHARGING;
+    // ----- State Machine -----
+    switch (outputs->state) {
+
+    case BMS_INIT:
+        // Transition to STANDBY after initialization
+        idle_time_ms = 0;
+        outputs->state = BMS_STANDBY;
+        break;
+
+    case BMS_STANDBY:
+        idle_time_ms = 0;
+
+        if (outputs->fault_flags != FAULT_NONE) {
+            outputs->state = BMS_FAULT;
+            break;
+        }
+
+        if (inputs->charger_connected) {
+            outputs->state = BMS_CHARGING;
+            break;
+        }
+
+        if (inputs->load_request == LOAD_MINIMAL) {
+            idle_time_ms += inputs->delta_time_ms;
+            if (idle_time_ms >= sleep_delay_ms && !inputs->wake_request) {
+                outputs->state = BMS_SLEEP;
+            }
+        } else if (inputs->load_request != LOAD_MINIMAL) {
+            outputs->state = BMS_DISCHARGING;
+        }
+        break;
+
+    case BMS_SLEEP:
+        if (inputs->wake_request) {
+            idle_time_ms = 0;
+            outputs->state = BMS_STANDBY;
+        }
+        break;
+
+    case BMS_CHARGING:
         outputs->charge_enabled = true;
-        return;
-    }
+        idle_time_ms = 0;
 
-    // 4. Wake from Sleep
-    if (outputs->state == BMS_SLEEP && inputs->wake_request) {
-        outputs->state = BMS_STANDBY;
-        return;
-    }
+        if (outputs->fault_flags != FAULT_NONE) {
+            outputs->state = BMS_FAULT;
+            break;
+        }
 
-    // 5. Sleep
-    if (inputs->load_request == LOAD_MINIMAL && !inputs->wake_request) {
-        outputs->state = BMS_SLEEP;
-        return;
-    }
+        if (!inputs->charger_connected) {
+            outputs->state = BMS_STANDBY;
+            break;
+        }
+        break;
 
-    // 6. Discharging
-    if (inputs->load_request == LOAD_LOW || inputs->load_request == LOAD_MEDIUM || inputs->load_request == LOAD_HIGH) {
-        outputs->state = BMS_DISCHARGING;
+    case BMS_DISCHARGING:
         outputs->discharge_enabled = true;
-        return;
-    }
+        idle_time_ms = 0;
 
-    // 7. Standby
-    if (inputs->load_request == LOAD_NONE) {
-        outputs->state = BMS_STANDBY;
-        return;
+        if (outputs->fault_flags != FAULT_NONE) {
+            outputs->state = BMS_FAULT;
+            break;
+        }
+
+        if (inputs->load_request == LOAD_MINIMAL) {
+            outputs->state = BMS_STANDBY;
+            break;
+        }
+
+    case BMS_FAULT:
+        // Remain in FAULT until fault reset
+        outputs->fault_active = true;
+
+        if (inputs->fault_reset) {
+            outputs->fault_flags = FAULT_NONE;
+            outputs->fault_active = false;
+            outputs->state = BMS_STANDBY;
+        }
+        break;
+
+    default:
+        outputs->state = BMS_INIT;
+        break;
     }
 }
