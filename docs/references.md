@@ -11,3 +11,5 @@ https://batteryskills.com/lithium-battery-voltage-chart/
 
 ## Concepts
 MISRA C Guidelines: https://www.parasoft.com/solutions/misra/  
+Plant UML: https://plantuml.com/
+Plant UML Video: https://www.youtube.com/watch?v=Lq6bU_tqKnE&t=9s

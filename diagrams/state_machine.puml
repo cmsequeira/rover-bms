@@ -1,0 +1,62 @@
+@startuml state_machine.puml
+
+' Formatting
+skinparam linetype spline
+skinparam ArrowMessageAlignment center
+skinparam nodesep 60
+skinparam ranksep 80
+
+' Diagram Title
+title Rover BMS State Machine
+
+' INIT
+INIT : 
+INIT --> Standby : power_on()
+' INIT --> Fault : fault_detected()
+
+' Standby
+Standby : Power : Low
+Standby : charge_enabled : false
+Standby : discharge_enabled : false
+Standby : fault_active : false
+Standby : fault_flags : false
+Standby --> Sleep : inactive > 30000ms
+Standby --> Charging : charger_connected()
+Standby --> Discharging
+Standby --> Fault : fault_detected()
+
+' Sleep
+Sleep : Power : Minimal
+Sleep : charge_enabled : false
+Sleep : discharge_enabled : false
+Sleep : fault_active : false
+Sleep : fault_flags : false
+Sleep --> Standby : wake_request()
+
+' Charging
+Charging : Power : High
+Charging : charge_enabled : true
+Charging : discharge_enabled : false
+Charging : fault_active : false
+Charging : fault_flags : false
+Charging --> Fault : fault_detected()
+Charging --> Standby
+
+' Discharging
+Discharging : Power : Medium || High
+Discharging : charge_enabled : false
+Discharging : discharge_enabled : true
+Discharging : fault_active : false
+Discharging : fault_flags : false
+Discharging --> Standby
+Discharging --> Fault : fault_detected()
+
+' Fault
+Fault : Power : ???
+Fault : charge_enabled : false
+Fault : discharge_enabled : false
+Fault : fault_flag : true
+Fault : fault_active : true
+Fault --> Standby : fault_reset() && fault_clear()
+
+@enduml

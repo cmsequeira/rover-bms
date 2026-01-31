@@ -1,6 +1,7 @@
 // Implement the State Machine
 
 #include <errno.h>
+#include <stddef.h>
 
 #include "bms.h" // BMS interface
 #include "bms_state.h" // BMS states
