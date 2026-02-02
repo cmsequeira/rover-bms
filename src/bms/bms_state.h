@@ -4,6 +4,7 @@
 #define BMS_STATE_H
 
 typedef enum {
+    // BMS_UNKNOWN,   // Undefined state
     BMS_INIT,         // Initializing
     BMS_STANDBY,      // Rover is on but not active
     BMS_CHARGING,     // Rover being charged

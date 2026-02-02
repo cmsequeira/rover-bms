@@ -1,0 +1,40 @@
+@startuml
+
+' Formatting
+skinparam linetype spline
+skinparam ArrowMessageAlignment center
+
+' Diagram Title
+title Rover BMS State Machine
+
+' INIT
+INIT --> Standby : power_on()
+INIT --> Fault : fault_detected()
+
+' Standby
+Standby --> Sleep : inactive > 30000ms
+Standby --> Charging : charger_connected()
+Standby --> Discharging : discharge_enabled()
+Standby --> Fault : fault_detected()
+
+' Sleep
+Sleep --> Standby : wake_request()
+Sleep --> Fault : fault_detected()
+
+' Charging
+Charging --> Fault : fault_detected()
+Charging --> Standby : charger_disconnected() || charge_complete()
+
+' Discharging
+Discharging --> Standby : discharge_disabled()
+Discharging --> Fault : fault_detected()
+
+' Fault
+Fault --> Standby : fault_reset() && fault_clear()
+
+' Footer
+footer
+	Created by Tianna Sequeira 2026
+end footer
+
+@enduml

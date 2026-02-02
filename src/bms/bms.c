@@ -7,22 +7,27 @@
 #include "bms_state.h" // BMS states
 #include "bms_define.h" // BMS constants
 
-void bms_init(bms_outputs_t *outputs) 
+int bms_init(bms_outputs_t *outputs) 
 {
-    if (outputs != NULL) 
-    {
-        outputs->state = BMS_INIT;
-        outputs->charge_enabled = false;
-        outputs->discharge_enabled = false;
-        outputs->fault_active = false;
-        outputs->fault_flags = FAULT_NONE;
-        return true;
+    if (outputs == NULL) {
+        return -EINVAL;
     }
-    return false;
+
+    outputs->state = BMS_INIT;
+    outputs->charge_enabled = false;
+    outputs->discharge_enabled = false;
+    outputs->fault_active = false;
+    outputs->fault_flags = FAULT_NONE;
+
+    return 0;
 }
 
-void bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs) 
+int bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs) 
 {
+    if (inputs == NULL || outputs == NULL) {
+        return -EINVAL;
+    }
+    
     static uint32_t idle_time_ms = 0;
 
     // ----- Fault Detection -----
@@ -57,20 +62,28 @@ void bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs)
         outputs->fault_flags = detected_fault;
         outputs->fault_active = true;
         outputs->state = BMS_FAULT;
-        return;
+        outputs->charge_enabled = false;
+        outputs->discharge_enabled = false;
+        return 0;
     }
 
     // ----- State Machine -----
     switch (outputs->state) {
 
     case BMS_INIT:
-        // Transition to STANDBY after initialization
         idle_time_ms = 0;
         outputs->state = BMS_STANDBY;
+        outputs->charge_enabled = false;
+        outputs->discharge_enabled = false;
+        outputs->fault_active = false;
+        outputs->fault_flags = FAULT_NONE;
         break;
 
     case BMS_STANDBY:
         idle_time_ms = 0;
+        outputs->charge_enabled = false;
+        outputs->discharge_enabled = false;
+        outputs->fault_active = false;
 
         if (outputs->fault_flags != FAULT_NONE) {
             outputs->state = BMS_FAULT;
@@ -93,6 +106,9 @@ void bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs)
         break;
 
     case BMS_SLEEP:
+        outputs->charge_enabled = false;
+        outputs->discharge_enabled = false;
+
         if (inputs->wake_request) {
             idle_time_ms = 0;
             outputs->state = BMS_STANDBY;
@@ -100,8 +116,9 @@ void bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs)
         break;
 
     case BMS_CHARGING:
-        outputs->charge_enabled = true;
         idle_time_ms = 0;
+        outputs->charge_enabled = true;
+        outputs->discharge_enabled = false;
 
         if (outputs->fault_flags != FAULT_NONE) {
             outputs->state = BMS_FAULT;
@@ -115,8 +132,9 @@ void bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs)
         break;
 
     case BMS_DISCHARGING:
-        outputs->discharge_enabled = true;
         idle_time_ms = 0;
+        outputs->charge_enabled = false;
+        outputs->discharge_enabled = true;
 
         if (outputs->fault_flags != FAULT_NONE) {
             outputs->state = BMS_FAULT;
@@ -129,18 +147,27 @@ void bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs)
         }
 
     case BMS_FAULT:
-        // Remain in FAULT until fault reset
+        outputs->charge_enabled = false;
+        outputs->discharge_enabled = false;
         outputs->fault_active = true;
 
         if (inputs->fault_reset) {
             outputs->fault_flags = FAULT_NONE;
             outputs->fault_active = false;
             outputs->state = BMS_STANDBY;
+            idle_time_ms = 0;
         }
         break;
 
     default:
         outputs->state = BMS_INIT;
+        outputs->charge_enabled = false;
+        outputs->discharge_enabled = false;
+        outputs->fault_active = false;
+        outputs->fault_flags = FAULT_NONE;
+        idle_time_ms = 0;
         break;
     }
+
+    return 0;
 }

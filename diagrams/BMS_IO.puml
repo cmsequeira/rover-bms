@@ -1,0 +1,24 @@
+@startuml
+
+skinparam componentStyle rectangle
+
+title Rover BMS Component Diagram
+
+' Inputs
+[Voltage Sensor] --> [ADC]
+[Current Sensor] --> [ADC]
+[Temperature Sensor] --> [ADC]
+[ADC] --> [BMS] : voltage (float) \ncurrent (float) \ntemperature (float)
+[Power Hardware] --> [BMS] : charger_connected (bool)
+[Rover Controller] --> [BMS] : wake_request (bool) \nload_request (enum)
+
+' Outputs
+[BMS] --> [Power Electronics] : discharge_enabled (bool)
+[BMS] --> [Telemetry] : fault_flags (enum)
+[BMS] --> [Rover Controller] : BMS_state (enum) \nfault_active (bool)
+
+footer
+	Created by Tianna Sequeira 2026
+end footer
+
+@enduml

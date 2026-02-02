@@ -29,6 +29,7 @@ This project is relevant to automotive and aerospace applications, where autonom
 |----|-----|-----|
 | Embedded C | Core BMS Logic and Control Implementation | N/A |
 | Git | Version control and collaborative development | https://git-scm.com/ |
+| PlantUML | Developing State Machine Diagrams | https://plantuml.com/ |
 | CAN | Communication between BMS and other subsystems | |
 | GitLab| Automated build, test and deployment piplines | https://about.gitlab.com/ |
 | Google Test | Unit and integration testing framework | https://github.com/google/googletest |
