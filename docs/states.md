@@ -10,4 +10,6 @@
 | Low SOC or extended inactivity        | Hibernation                           | SLEEP         |
 
 ## BMS State Machine
-![alt text](../images/BMS_state_flowchart.png)
+![alt text](../images/BMS_FSM_V2.png)
+
+![alt text](../images/BMS_FSM_V1.png)

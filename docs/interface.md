@@ -16,4 +16,4 @@
 - Fault Flags
 
 ## Input Output Diagram
-![alt text](../images/input_output.png)
+![alt text](../images/BMS_IO_V2.png)

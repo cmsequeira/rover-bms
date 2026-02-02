@@ -42,6 +42,8 @@ This project is relevant to automotive and aerospace applications, where autonom
 ## Running BMS Test
 Within the repository, run the following commands:
 
-gcc -I./src/bms -o bms_test tests/bms_test.c src/bms/bms.c
+gcc -Wall -Wextra -I./src/bms -o tests/state_tests tests/state_tests.c src/bms/bms.c
 
-./bms_test
+/tests/state_tests
+
+![alt text](./images/state_tests_output.png)

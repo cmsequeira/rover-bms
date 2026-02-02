@@ -41,7 +41,7 @@ typedef struct {
 } bms_outputs_t;
 
 // Function to update BMS state
-void bms_init(bms_outputs_t *outputs);
-void bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs);
+int bms_init(bms_outputs_t *outputs);
+int bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs);
 
 #endif // BMS_H

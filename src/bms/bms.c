@@ -43,7 +43,7 @@ int bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs)
     }
 
     // Current Faults
-    if (inputs->charger_connected && (inputs->current > MAX_CHARGE_CURRENT) || 
+    if ((inputs->charger_connected && (inputs->current > MAX_CHARGE_CURRENT)) || 
         (!inputs->charger_connected && (inputs->current > MAX_DISCHARGE_CURRENT))) {
         detected_fault |= FAULT_OVERCURRENT;
     }
@@ -80,7 +80,6 @@ int bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs)
         break;
 
     case BMS_STANDBY:
-        idle_time_ms = 0;
         outputs->charge_enabled = false;
         outputs->discharge_enabled = false;
         outputs->fault_active = false;
@@ -145,6 +144,8 @@ int bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs)
             outputs->state = BMS_STANDBY;
             break;
         }
+
+        break;
 
     case BMS_FAULT:
         outputs->charge_enabled = false;

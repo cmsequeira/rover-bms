@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include "bms.h"
 #include "bms_state.h"
-#include "bms_limits.h"
+#include "bms_define.h"
 
 #define ASSERT_EQUAL(a, b, message) if ((a) != (b)) { printf("FAIL: %s\n", message); } else { printf("PASS: %s\n", message); }
 
@@ -24,6 +24,7 @@ void test_fault_voltage_high() {
     inputs.load_request = LOAD_MEDIUM;
 
     run_check(&inputs, &outputs);
+    run_check(&inputs, &outputs);
     ASSERT_EQUAL(outputs.state, BMS_FAULT, "Overvoltage triggers FAULT");
 }
 
@@ -38,6 +39,7 @@ void test_multiple_faults() {
     inputs.charger_connected = true;
     inputs.load_request = LOAD_HIGH;
 
+    run_check(&inputs, &outputs);
     run_check(&inputs, &outputs);
     ASSERT_EQUAL(outputs.state, BMS_FAULT, "Multiple faults trigger FAULT");
 }
@@ -54,6 +56,7 @@ void test_charging_state() {
     inputs.load_request = LOAD_HIGH;
 
     run_check(&inputs, &outputs);
+    run_check(&inputs, &outputs);
     ASSERT_EQUAL(outputs.state, BMS_CHARGING, "Charger connected triggers CHARGING");
 }
 
@@ -69,6 +72,7 @@ void test_discharge_state() {
     inputs.load_request = LOAD_MEDIUM;
 
     run_check(&inputs, &outputs);
+    run_check(&inputs, &outputs);
     ASSERT_EQUAL(outputs.state, BMS_DISCHARGING, "Medium Load triggers DISCHARGING");
 }
 
@@ -82,8 +86,9 @@ void test_sleep_state() {
     inputs.temperature = 25;
     inputs.charger_connected = false;
     inputs.load_request = LOAD_MINIMAL;
-    inputs.delta_time_ms = sleep_delay_ms;
+    inputs.delta_time_ms = sleep_delay_ms + 1;
 
+    run_check(&inputs, &outputs);
     run_check(&inputs, &outputs);
     ASSERT_EQUAL(outputs.state, BMS_SLEEP, "Minimal load triggers SLEEP");
 }
@@ -99,14 +104,16 @@ void test_wake_from_sleep() {
     inputs.temperature = 25;
     inputs.charger_connected = false;
     inputs.load_request = LOAD_MINIMAL;
-    inputs.delta_time_ms = sleep_delay_ms;
+    inputs.delta_time_ms = sleep_delay_ms + 1;
     inputs.wake_request = false;
 
+    run_check(&inputs, &outputs);
     run_check(&inputs, &outputs);
     ASSERT_EQUAL(outputs.state, BMS_SLEEP, "Minimal load triggers SLEEP");
 
     // Wake request
     inputs.wake_request = true;
+    run_check(&inputs, &outputs);
     run_check(&inputs, &outputs);
     ASSERT_EQUAL(outputs.state, BMS_STANDBY, "Wake request exits SLEEP to STANDBY");
 }
@@ -124,6 +131,7 @@ void test_standby_state() {
     inputs.delta_time_ms = 0;
     inputs.wake_request = false;
 
+    run_check(&inputs, &outputs);
     run_check(&inputs, &outputs);
     ASSERT_EQUAL(outputs.state, BMS_STANDBY, "No load triggers STANDBY");
 }
