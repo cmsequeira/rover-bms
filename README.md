@@ -39,11 +39,16 @@ This project is relevant to automotive and aerospace applications, where autonom
 
 # Using the Repository
 
-## Running BMS Test
-Within the repository, run the following commands:
-
+### Run the State Test Script
 gcc -Wall -Wextra -I./src/bms -o tests/state_tests tests/state_tests.c src/bms/bms.c
 
 /tests/state_tests
 
-![alt text](./images/state_tests_output.png)
+![alt text](./images/output_statetest.png)
+
+### Run the Sim with Randomized Data
+gcc -Wall -Wextra -I./src/bms -o build/bms_sim src/main_randsim.c src/bms/bms.c
+
+./build/bms_sim
+
+![alt text](./images/output_randsim.png)
