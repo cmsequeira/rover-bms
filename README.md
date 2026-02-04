@@ -52,3 +52,28 @@ gcc -Wall -Wextra -I./src/bms -o build/bms_sim src/main_randsim.c src/bms/bms.c
 ./build/bms_sim
 
 ![alt text](./images/output_randsim.png)
+
+### Run the Sim with Randomized Data
+NOTE: run once:
+mkfifo /tmp/bms_cmd
+
+#### On Terminal 1
+gcc -Wall -Wextra -I./src/bms -o build/bms_sim_fifo src/main_fifo.c src/bms/bms.c
+
+./build/bms_sim_fifo
+
+#### On Terminal 2
+echo -n [letter] > /tmp/bms_cmd
+
+OR
+
+cat > /tmp/bms_cmd
+
+| Letter | Action           |
+| ------ | --------------   |
+| c      | charging         |
+| d      | discharging      |
+| f      | randomized fault |
+| w      | wake from sleep  |
+| r      | fault reset      |
+| s      | standby          |
