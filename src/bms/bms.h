@@ -5,6 +5,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+
 #include "bms_state.h"  // Includes the BMS states
 #include "bms_define.h" // Includes BMS constants
 

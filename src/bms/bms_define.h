@@ -1,7 +1,7 @@
 #ifndef BMS_DEFINE_H
 #define BMS_DEFINE_H
 
-// Limits for the Battery Management System (BMS)
+// Limits for the Battery Management System (BMS) based on requirements document and typical lithium-ion battery characteristics
 #define MAX_VOLTAGE 30.0f
 #define MIN_VOLTAGE 25.0f
 #define MAX_CHARGE_CURRENT 8.0f

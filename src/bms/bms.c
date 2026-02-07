@@ -3,16 +3,19 @@
 #include <errno.h>
 #include <stddef.h>
 
-#include "bms.h" // BMS interface
-#include "bms_state.h" // BMS states
+#include "bms.h"        // BMS interface
+#include "bms_state.h"  // BMS states
 #include "bms_define.h" // BMS constants
 
+// Initialize the BMS outputs to default values
 int bms_init(bms_outputs_t *outputs) 
 {
+    // Check for null pointer
     if (outputs == NULL) {
         return -EINVAL;
     }
 
+    // Set initial state and defaults
     outputs->state = BMS_INIT;
     outputs->charge_enabled = false;
     outputs->discharge_enabled = false;
@@ -22,12 +25,15 @@ int bms_init(bms_outputs_t *outputs)
     return 0;
 }
 
+// Main BMS logic function - processes inputs and updates outputs
 int bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs) 
 {
+    // Check for null pointers
     if (inputs == NULL || outputs == NULL) {
         return -EINVAL;
     }
     
+    // Static variable to track idle time for sleep transition
     static uint32_t idle_time_ms = 0;
 
     // ----- Fault Detection -----
@@ -68,8 +74,11 @@ int bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs)
     }
 
     // ----- State Machine -----
+
+    // State transitions based on current state and inputs
     switch (outputs->state) {
 
+    // Initial state - transition to standby
     case BMS_INIT:
         idle_time_ms = 0;
         outputs->state = BMS_STANDBY;
@@ -79,6 +88,7 @@ int bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs)
         outputs->fault_flags = FAULT_NONE;
         break;
 
+    // Standby state - can transition to charging, discharging, sleep or fault
     case BMS_STANDBY:
         outputs->charge_enabled = false;
         outputs->discharge_enabled = false;
@@ -104,6 +114,7 @@ int bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs)
         }
         break;
 
+    // Sleep state - can only transition back to standby on wake request
     case BMS_SLEEP:
         outputs->charge_enabled = false;
         outputs->discharge_enabled = false;
@@ -114,6 +125,7 @@ int bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs)
         }
         break;
 
+    // Charging state - can transition to standby or fault
     case BMS_CHARGING:
         idle_time_ms = 0;
         outputs->charge_enabled = true;
@@ -130,6 +142,7 @@ int bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs)
         }
         break;
 
+    // Discharging state - can transition to standby or fault
     case BMS_DISCHARGING:
         idle_time_ms = 0;
         outputs->charge_enabled = false;
@@ -147,6 +160,7 @@ int bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs)
 
         break;
 
+    // Fault state - can only transition back to standby on fault reset
     case BMS_FAULT:
         outputs->charge_enabled = false;
         outputs->discharge_enabled = false;
@@ -160,6 +174,7 @@ int bms_run(const bms_inputs_t *inputs, bms_outputs_t *outputs)
         }
         break;
 
+    // set defaults
     default:
         outputs->state = BMS_INIT;
         outputs->charge_enabled = false;

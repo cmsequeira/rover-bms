@@ -3,6 +3,7 @@
 #ifndef BMS_STATE_H
 #define BMS_STATE_H
 
+// enum for BMS states
 typedef enum {
     // BMS_UNKNOWN,   // Undefined state
     BMS_INIT,         // Initializing
